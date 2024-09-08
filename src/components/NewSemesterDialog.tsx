@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { type Semester } from "@prisma/client";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -14,6 +13,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { createSemester } from "~/app/actions/semester";
 
 const NewSemesterDialog = () => {
   const router = useRouter();
@@ -46,14 +46,8 @@ const NewSemesterDialog = () => {
         <DialogFooter>
           <Button
             onClick={async () => {
-              const response = await fetch("/api/semesters", {
-                method: "POST",
-                body: JSON.stringify({ name: name }),
-              });
-
-              const data = (await response.json()) as Semester;
-
-              router.push(`/semester/${data.id}`);
+              const semester = await createSemester(name);
+              router.push(`/semester/${semester.id}`);
             }}
             type="submit"
           >
