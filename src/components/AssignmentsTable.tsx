@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { type Prisma } from "@prisma/client";
+import { Status, type Prisma } from "@prisma/client";
 import {
   Table,
   TableBody,
@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { addAssignment } from "~/app/actions/semester";
 
 const AssignmentsTable = ({
   semester,
@@ -39,7 +40,12 @@ const AssignmentsTable = ({
   const [shouldDisplayNewAssignmentRow, setShouldDisplayNewAssignmentRow] =
     useState(false);
 
-  const [newAssignmentDate, setNewAssignmentDate] = useState<Date>();
+  const [newAssignmentCourse, setNewAssignmentCourse] = useState("");
+  const [newAssignmentName, setNewAssignmentName] = useState("");
+  const [newAssignmentDate, setNewAssignmentDate] = useState(new Date());
+  const [newAssignmentStatus, setNewAssignmentStatus] = useState<Status>(
+    Status.NOT_DONE,
+  );
 
   return (
     <div className="w-full">
@@ -64,10 +70,18 @@ const AssignmentsTable = ({
           {shouldDisplayNewAssignmentRow && (
             <TableRow>
               <TableCell>
-                <Input placeholder="Course"></Input>
+                <Input
+                  placeholder="Course"
+                  value={newAssignmentCourse}
+                  onChange={(e) => setNewAssignmentCourse(e.target.value)}
+                />
               </TableCell>
               <TableCell>
-                <Input placeholder="Assignment"></Input>
+                <Input
+                  placeholder="Assignment"
+                  value={newAssignmentName}
+                  onChange={(e) => setNewAssignmentName(e.target.value)}
+                />
               </TableCell>
               <TableCell>
                 <Popover>
@@ -91,14 +105,16 @@ const AssignmentsTable = ({
                     <Calendar
                       mode="single"
                       selected={newAssignmentDate}
-                      onSelect={setNewAssignmentDate}
+                      onSelect={(e) => setNewAssignmentDate(e ?? new Date())}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
               </TableCell>
               <TableCell>
-                <Select>
+                <Select
+                  onValueChange={(v) => setNewAssignmentStatus(v as Status)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -114,7 +130,21 @@ const AssignmentsTable = ({
               </TableCell>
               <TableCell>
                 <span className="flex gap-2">
-                  <Button>Save</Button>
+                  <Button
+                    onClick={async () => {
+                      await addAssignment(
+                        {
+                          course: newAssignmentCourse,
+                          name: newAssignmentName,
+                          dueDate: newAssignmentDate,
+                          status: newAssignmentStatus,
+                        },
+                        semester.id,
+                      );
+                    }}
+                  >
+                    Save
+                  </Button>
                   <Button
                     variant={"secondary"}
                     onClick={() => setShouldDisplayNewAssignmentRow(false)}

@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+import { type Assignment } from "@prisma/client";
 import { db } from "~/server/db";
 
 export const createSemester = async (name: string) => {
@@ -27,6 +28,20 @@ export const createSemester = async (name: string) => {
     data: {
       name,
       userId,
+    },
+  });
+};
+
+export const addAssignment = async (
+  assignment: Omit<Assignment, "id" | "semesterId">,
+  semesterId: string,
+) => {
+  await db.semester.update({
+    where: { id: semesterId },
+    data: {
+      assignments: {
+        create: assignment,
+      },
     },
   });
 };
