@@ -4,16 +4,21 @@ import {
   SignInButton,
   SignOutButton,
 } from "@clerk/nextjs";
+import { Button } from "~/components/ui/button";
 
 const HomePage = () => {
   return (
     <>
       <h1 className="text-2xl">Assignment Tracker</h1>
       <SignedOut>
-        <SignInButton />
+        <Button>
+          <SignInButton />
+        </Button>
       </SignedOut>
       <SignedIn>
-        <SignOutButton />
+        <Button>
+          <SignOutButton />
+        </Button>
       </SignedIn>
     </>
   );
