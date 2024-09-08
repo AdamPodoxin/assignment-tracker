@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -6,8 +7,15 @@ import {
 } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
-import { Button } from "~/components/ui/button";
 import NewSemesterDialog from "~/components/NewSemesterDialog";
+
+const AuthButton = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+      {children}
+    </div>
+  );
+};
 
 const HomePage = async () => {
   const authObject = auth();
@@ -24,28 +32,31 @@ const HomePage = async () => {
       <h1 className="text-2xl">Assignment Tracker</h1>
 
       <SignedOut>
-        <Button>
+        <AuthButton>
           <SignInButton />
-        </Button>
+        </AuthButton>
       </SignedOut>
 
       <SignedIn>
-        <Button>
+        <AuthButton>
           <SignOutButton />
-        </Button>
+        </AuthButton>
 
-        <div className="flex items-center justify-center gap-8">
-          {semesters.map((semester) => (
-            <a
-              href={`/semester/${semester.id}`}
-              key={semester.id}
-              className="flex h-[150px] w-[150px] items-center justify-center rounded-xl border-[1px] border-white text-lg"
-            >
-              {semester.name}
-            </a>
-          ))}
+        <div>
+          <h1 className="my-4 text-xl">Semesters:</h1>
+          <div className="flex items-center justify-center gap-8">
+            {semesters.map((semester) => (
+              <a
+                href={`/semester/${semester.id}`}
+                key={semester.id}
+                className="flex h-[150px] w-[150px] items-center justify-center rounded-xl border-[1px] border-white text-lg"
+              >
+                {semester.name}
+              </a>
+            ))}
 
-          <NewSemesterDialog />
+            <NewSemesterDialog />
+          </div>
         </div>
       </SignedIn>
     </>
