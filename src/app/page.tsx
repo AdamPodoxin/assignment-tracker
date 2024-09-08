@@ -7,7 +7,7 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import NewSemesterDialog from "~/components/NewSemesterDialog";
-import SpanStyledAsButton from "~/components/SpanStyledAsButton";
+import { Button } from "~/components/ui/button";
 
 const HomePage = async () => {
   const authObject = auth();
@@ -24,15 +24,15 @@ const HomePage = async () => {
       <h1 className="text-2xl">Assignment Tracker</h1>
 
       <SignedOut>
-        <SpanStyledAsButton>
+        <Button asChild>
           <SignInButton />
-        </SpanStyledAsButton>
+        </Button>
       </SignedOut>
 
       <SignedIn>
-        <SpanStyledAsButton>
+        <Button asChild>
           <SignOutButton />
-        </SpanStyledAsButton>
+        </Button>
 
         <div>
           <h1 className="my-4 text-xl">Semesters:</h1>

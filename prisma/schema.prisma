@@ -15,4 +15,23 @@ model Semester {
     id String @id @default(cuid())
     userId String
     name String
+
+    assignments Assignment[]
+}
+
+model Assignment {
+  id String @id @default(cuid())
+  name String
+  course String
+  dueDate DateTime
+  status Status @default(NOT_DONE)
+
+  semester Semester @relation(fields: [semesterId], references: [id])
+  semesterId String
+}
+
+enum Status {
+  NOT_DONE
+  IN_PROGRESS
+  DONE
 }

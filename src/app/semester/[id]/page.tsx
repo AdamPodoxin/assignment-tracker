@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 
 const SemesterPage = async ({ params }: { params: { id: string } }) => {
@@ -7,6 +7,7 @@ const SemesterPage = async ({ params }: { params: { id: string } }) => {
 
   const semester = await db.semester.findUnique({
     where: { id: params.id },
+    include: { assignments: true },
   });
 
   if (!semester || semester.userId !== userId) {
@@ -15,7 +16,7 @@ const SemesterPage = async ({ params }: { params: { id: string } }) => {
 
   return (
     <>
-      <p>{semester?.name}</p>
+      <p className="text-2xl">{semester.name}</p>
     </>
   );
 };
