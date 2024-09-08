@@ -14,9 +14,12 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { createSemester } from "~/app/actions/semester";
+import { useToast } from "~/hooks/use-toast";
 
 const NewSemesterDialog = () => {
   const router = useRouter();
+
+  const { toast } = useToast();
 
   const [name, setName] = useState("");
 
@@ -46,8 +49,15 @@ const NewSemesterDialog = () => {
         <DialogFooter>
           <Button
             onClick={async () => {
-              const semester = await createSemester(name);
-              router.push(`/semester/${semester.id}`);
+              try {
+                const semester = await createSemester(name);
+                router.push(`/semester/${semester.id}`);
+              } catch (e) {
+                toast({
+                  title: (e as Error).message,
+                  variant: "destructive",
+                });
+              }
             }}
             type="submit"
           >
