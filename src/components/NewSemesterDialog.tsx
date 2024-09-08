@@ -15,6 +15,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { createSemester } from "~/app/actions/semester";
 import { useToast } from "~/hooks/use-toast";
+import SpanStyledAsButton from "./SpanStyledAsButton";
 
 const NewSemesterDialog = () => {
   const router = useRouter();
@@ -26,7 +27,7 @@ const NewSemesterDialog = () => {
   return (
     <Dialog>
       <DialogTrigger>
-        <Button>+</Button>
+        <SpanStyledAsButton>+</SpanStyledAsButton>
       </DialogTrigger>
 
       <DialogContent>
