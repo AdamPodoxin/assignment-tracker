@@ -12,7 +12,7 @@ datasource db {
 }
 
 model Semester {
-    id String @id @default(uuid())
-    user_id String
+    id String @id @default(cuid())
+    userId String
     name String
 }
