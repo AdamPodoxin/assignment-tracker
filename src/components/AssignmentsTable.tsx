@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Status, type Prisma } from "@prisma/client";
+import { addAssignment } from "~/app/actions/semester";
+import { cn } from "~/lib/utils";
 import {
   Table,
   TableBody,
@@ -11,9 +13,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table";
-import { Input } from "./ui/input";
-import { cn } from "~/lib/utils";
+} from "~/components/ui/table";
+import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -29,15 +30,16 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "./ui/select";
-import { addAssignment } from "~/app/actions/semester";
+} from "~/components/ui/select";
 
 const AssignmentsTable = ({
   semester,
+  onAdd,
 }: {
   semester: Prisma.SemesterGetPayload<{ include: { assignments: true } }>;
+  onAdd: () => void;
 }) => {
-  const [shouldDisplayNewAssignmentRow, setShouldDisplayNewAssignmentRow] =
+  const [isNewAssignmentRowVisible, setIsNewAssignmentRowVisible] =
     useState(false);
 
   const [newAssignmentCourse, setNewAssignmentCourse] = useState("");
@@ -51,7 +53,7 @@ const AssignmentsTable = ({
     <div className="w-full">
       <Button
         className="my-2"
-        onClick={() => setShouldDisplayNewAssignmentRow(true)}
+        onClick={() => setIsNewAssignmentRowVisible(true)}
       >
         Add assignment
       </Button>
@@ -67,7 +69,7 @@ const AssignmentsTable = ({
         </TableHeader>
 
         <TableBody>
-          {shouldDisplayNewAssignmentRow && (
+          {isNewAssignmentRowVisible && (
             <TableRow>
               <TableCell>
                 <Input
@@ -132,6 +134,8 @@ const AssignmentsTable = ({
                 <span className="flex gap-2">
                   <Button
                     onClick={async () => {
+                      setIsNewAssignmentRowVisible(false);
+
                       await addAssignment(
                         {
                           course: newAssignmentCourse,
@@ -141,13 +145,15 @@ const AssignmentsTable = ({
                         },
                         semester.id,
                       );
+
+                      onAdd();
                     }}
                   >
                     Save
                   </Button>
                   <Button
                     variant={"secondary"}
-                    onClick={() => setShouldDisplayNewAssignmentRow(false)}
+                    onClick={() => setIsNewAssignmentRowVisible(false)}
                   >
                     Cancel
                   </Button>

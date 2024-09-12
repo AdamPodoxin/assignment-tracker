@@ -1,34 +1,40 @@
+"use client";
+
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
-import { db } from "~/server/db";
+import { useAuth } from "@clerk/nextjs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import useSemester from "~/hooks/useSemester";
 import AssignmentsTable from "~/components/AssignmentsTable";
 
-const SemesterPage = async ({ params }: { params: { id: string } }) => {
-  const { userId } = auth();
+const queryClient = new QueryClient();
 
-  const semester = await db.semester.findUnique({
-    where: { id: params.id },
-    include: { assignments: true },
-  });
+const SemesterDashboard = ({ id }: { id: string }) => {
+  const { userId } = useAuth();
 
-  if (!semester || semester.userId !== userId) {
+  const { data: semester, isLoading, refetch } = useSemester({ id });
+
+  if (!isLoading && (!semester || semester.userId !== userId)) {
     redirect("/not-found");
   }
 
-  semester.assignments.push({
-    id: "id",
-    course: "CMPT 201",
-    name: "A0",
-    dueDate: new Date(),
-    status: "DONE",
-    semesterId: semester.id,
-  });
-
   return (
     <>
-      <p className="text-2xl">{semester.name}</p>
+      {semester && (
+        <>
+          <p className="text-2xl">{semester.name}</p>
+          <AssignmentsTable semester={semester} onAdd={refetch} />
+        </>
+      )}
+    </>
+  );
+};
 
-      <AssignmentsTable semester={semester} />
+const SemesterPage = ({ params }: { params: { id: string } }) => {
+  return (
+    <>
+      <QueryClientProvider client={queryClient}>
+        {<SemesterDashboard id={params.id} />}
+      </QueryClientProvider>
     </>
   );
 };
