@@ -8,6 +8,7 @@ export type SemesterWithAssignments = Prisma.SemesterGetPayload<{
 const useSemester = ({ id }: { id: string }) => {
   const query = useQuery({
     queryKey: ["semester"],
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const response = await fetch(`/api/semester?id=${id}`);
 
