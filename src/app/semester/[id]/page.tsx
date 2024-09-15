@@ -4,9 +4,8 @@ import { redirect } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import useSemester from "~/hooks/useSemester";
-import AssignmentsTable from "~/components/AssignmentsTable";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { DataTable } from "./DataTable";
+import { getColumns } from "./columns";
 
 const queryClient = new QueryClient();
 
@@ -19,13 +18,23 @@ const SemesterDashboard = ({ id }: { id: string }) => {
     redirect("/not-found");
   }
 
+  const refetchSync = () => void refetch();
+
+  const columns = getColumns({
+    refetch: refetchSync,
+  });
+
   return (
     <>
       {semester && (
         <>
           <p className="text-2xl">{semester.name}</p>
-          <AssignmentsTable semester={semester} onAdd={refetch} />
-          <DataTable columns={columns} data={semester.assignments} />
+          <DataTable
+            columns={columns}
+            data={semester.assignments}
+            semesterId={semester.id}
+            refetch={refetchSync}
+          />
         </>
       )}
     </>
