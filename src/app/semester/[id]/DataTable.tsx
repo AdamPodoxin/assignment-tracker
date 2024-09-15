@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Status } from "@prisma/client";
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -53,10 +55,19 @@ export function DataTable<TData, TValue>({
   semesterId: string;
   refetch: () => void;
 }) {
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "dueDate", desc: false },
+  ]);
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
   });
 
   const [isNewAssignmentRowVisible, setIsNewAssignmentRowVisible] =
