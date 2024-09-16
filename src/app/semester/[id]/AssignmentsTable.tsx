@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { Status } from "@prisma/client";
+import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { type Assignment, Status } from "@prisma/client";
 import {
   type ColumnDef,
   type SortingState,
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
+import { cn } from "~/lib/utils";
+import { addAssignment, deleteAssignment } from "~/app/actions/semester";
 import {
   Table,
   TableBody,
@@ -34,37 +38,159 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { cn } from "~/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import {
+  ArrowUpDown,
+  CalendarIcon,
+  FilterIcon,
+  MoreHorizontal,
+} from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
-import { addAssignment } from "~/app/actions/semester";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Badge } from "~/components/ui/badge";
+import { type SemesterWithAssignments } from "~/hooks/useSemester";
+import FilterDropdown from "./FilterDropdown";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-}
+const toTitleCase = (s: string) =>
+  s.replace(
+    /\w\S*/g,
+    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
+  );
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  semesterId,
+export const AssignmentsTable = ({
+  semester,
   refetch,
-}: DataTableProps<TData, TValue> & {
-  semesterId: string;
+}: {
+  semester: SemesterWithAssignments;
   refetch: () => void;
-}) {
+}) => {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "dueDate", desc: false },
   ]);
 
-  const table = useReactTable({
-    data,
+  const columns = useMemo<ColumnDef<Assignment, unknown>[]>(
+    () => [
+      {
+        accessorKey: "course",
+        header: "Course",
+      },
+      {
+        accessorKey: "name",
+        header: "Assignment",
+      },
+      {
+        accessorKey: "dueDate",
+        sortDescFirst: false,
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              Due Date
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          const dueDate = row.original.dueDate;
+          return dueDate.toDateString();
+        },
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => {
+          return (
+            <Button variant="ghost">
+              <span className="flex">
+                Status
+                <FilterIcon className="ml-2 h-4 w-4" />
+              </span>
+            </Button>
+          );
+        },
+        cell: ({ row }) => {
+          const status = row.original.status;
+          const statusString = status
+            .toString()
+            .split("_")
+            .map(toTitleCase)
+            .join(" ");
+
+          switch (status) {
+            case "NOT_DONE":
+              return (
+                <Badge className="bg-red-600 text-white">{statusString}</Badge>
+              );
+
+            case "IN_PROGRESS":
+              return (
+                <Badge className="bg-amber-600 text-white">
+                  {statusString}
+                </Badge>
+              );
+
+            case "DONE":
+              return (
+                <Badge className="bg-green-600 text-white">
+                  {statusString}
+                </Badge>
+              );
+          }
+        },
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const assignment = row.original;
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await deleteAssignment({
+                      assignmentId: assignment.id,
+                      semesterId: assignment.semesterId,
+                    });
+
+                    refetch();
+                  }}
+                >
+                  <span className="font-bold text-red-600">Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [],
+  );
+
+  const table = useReactTable<Assignment>({
+    data: semester.assignments,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
     },
@@ -184,7 +310,7 @@ export function DataTable<TData, TValue>({
                             dueDate: newAssignmentDate,
                             status: newAssignmentStatus,
                           },
-                          semesterId,
+                          semesterId: semester.id,
                         });
 
                         refetch();
@@ -234,4 +360,4 @@ export function DataTable<TData, TValue>({
       </div>
     </div>
   );
-}
+};
