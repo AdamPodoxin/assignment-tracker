@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { type Assignment, Status } from "@prisma/client";
 import {
-  type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
   flexRender,
@@ -14,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { cn } from "~/lib/utils";
-import { addAssignment, deleteAssignment } from "~/app/actions/semester";
+import { addAssignment } from "~/app/actions/semester";
 import {
   Table,
   TableBody,
@@ -38,30 +37,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import {
-  ArrowUpDown,
-  CalendarIcon,
-  FilterIcon,
-  MoreHorizontal,
-} from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Badge } from "~/components/ui/badge";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
-import FilterDropdown from "./FilterDropdown";
-
-const toTitleCase = (s: string) =>
-  s.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
-  );
+import getColumns from "./columns";
 
 export const AssignmentsTable = ({
   semester,
@@ -74,115 +54,9 @@ export const AssignmentsTable = ({
     { id: "dueDate", desc: false },
   ]);
 
-  const columns = useMemo<ColumnDef<Assignment, unknown>[]>(
-    () => [
-      {
-        accessorKey: "course",
-        header: "Course",
-      },
-      {
-        accessorKey: "name",
-        header: "Assignment",
-      },
-      {
-        accessorKey: "dueDate",
-        sortDescFirst: false,
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              Due Date
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const dueDate = row.original.dueDate;
-          return dueDate.toDateString();
-        },
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <Button variant="ghost">
-              <span className="flex">
-                Status
-                <FilterIcon className="ml-2 h-4 w-4" />
-              </span>
-            </Button>
-          );
-        },
-        cell: ({ row }) => {
-          const status = row.original.status;
-          const statusString = status
-            .toString()
-            .split("_")
-            .map(toTitleCase)
-            .join(" ");
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-          switch (status) {
-            case "NOT_DONE":
-              return (
-                <Badge className="bg-red-600 text-white">{statusString}</Badge>
-              );
-
-            case "IN_PROGRESS":
-              return (
-                <Badge className="bg-amber-600 text-white">
-                  {statusString}
-                </Badge>
-              );
-
-            case "DONE":
-              return (
-                <Badge className="bg-green-600 text-white">
-                  {statusString}
-                </Badge>
-              );
-          }
-        },
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => {
-          const assignment = row.original;
-
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-                <DropdownMenuItem
-                  onClick={async () => {
-                    await deleteAssignment({
-                      assignmentId: assignment.id,
-                      semesterId: assignment.semesterId,
-                    });
-
-                    refetch();
-                  }}
-                >
-                  <span className="font-bold text-red-600">Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-      },
-    ],
-    [],
-  );
+  const columns = useMemo(() => getColumns({ refetch }), [refetch]);
 
   const table = useReactTable<Assignment>({
     data: semester.assignments,
@@ -191,8 +65,10 @@ export const AssignmentsTable = ({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
     state: {
       sorting,
+      columnFilters,
     },
   });
 
@@ -222,7 +98,7 @@ export const AssignmentsTable = ({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} colSpan={header.colSpan}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
