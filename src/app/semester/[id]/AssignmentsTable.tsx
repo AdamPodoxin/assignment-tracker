@@ -43,7 +43,7 @@ import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
 import getColumns from "./columns";
-import { importCsv, ImportCsvData } from "./importCsv";
+import { importCsv, type ImportCsvData } from "./importCsv";
 
 export const AssignmentsTable = ({
   semester,

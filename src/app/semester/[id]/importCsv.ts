@@ -1,6 +1,6 @@
 "use client";
 
-import { $Enums, type Assignment } from "@prisma/client";
+import { type $Enums, type Assignment } from "@prisma/client";
 import { uploadAssignments } from "~/app/actions/semester";
 
 export type ImportCsvData = {
