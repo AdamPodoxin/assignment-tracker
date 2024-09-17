@@ -49,6 +49,25 @@ export const addAssignment = async ({
   });
 };
 
+export const uploadAssignments = async ({
+  assignments,
+  semesterId,
+}: {
+  assignments: Omit<Assignment, "id" | "semesterId">[];
+  semesterId: string;
+}) => {
+  await db.semester.update({
+    where: { id: semesterId },
+    data: {
+      assignments: {
+        createMany: {
+          data: assignments,
+        },
+      },
+    },
+  });
+};
+
 export const editAssignment = async ({
   semesterId,
   assignmentId,

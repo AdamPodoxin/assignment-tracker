@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
+import { CSVImporter } from "csv-import-react";
 import { type Assignment, Status } from "@prisma/client";
 import {
   type SortingState,
@@ -37,11 +38,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { CalendarIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, FileIcon, PlusIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
 import getColumns from "./columns";
+import { importCsv, ImportCsvData } from "./importCsv";
 
 export const AssignmentsTable = ({
   semester,
@@ -104,16 +106,68 @@ export const AssignmentsTable = ({
     Status.NOT_DONE,
   );
 
+  const [isCsvImportOpen, setIsCsvImportOpen] = useState(false);
+
   return (
-    <div className="w-full">
-      <Button
-        className="my-2"
-        onClick={() => setIsNewAssignmentRowVisible(true)}
-      >
-        <span className="flex items-center">
-          <PlusIcon className="mr-2 h-4 w-4" /> Add assignment
-        </span>
-      </Button>
+    <div className="flex w-full flex-col gap-2">
+      <span className="flex gap-2">
+        <Button
+          className="my-2"
+          onClick={() => setIsNewAssignmentRowVisible(true)}
+        >
+          <span className="flex items-center">
+            <PlusIcon className="mr-2 h-4 w-4" /> Add assignment
+          </span>
+        </Button>
+
+        <Button
+          variant={"secondary"}
+          className="my-2"
+          onClick={() => setIsCsvImportOpen(true)}
+        >
+          <span className="flex items-center">
+            <FileIcon className="mr-2 h-4 w-4" /> Import CSV
+          </span>
+        </Button>
+
+        <CSVImporter
+          modalIsOpen={isCsvImportOpen}
+          modalOnCloseTriggered={() => setIsCsvImportOpen(false)}
+          darkMode={true}
+          onComplete={async (data) => {
+            await importCsv({
+              data: data as ImportCsvData,
+              semesterId: semester.id,
+            });
+
+            refetch();
+          }}
+          template={{
+            columns: [
+              {
+                name: "Course",
+                key: "course",
+                required: true,
+              },
+              {
+                name: "Assignment",
+                key: "assignment",
+                required: true,
+              },
+              {
+                name: "Due Date",
+                key: "dueDate",
+                required: true,
+              },
+              {
+                name: "Status",
+                key: "status",
+                required: true,
+              },
+            ],
+          }}
+        />
+      </span>
 
       <div className="rounded-md border">
         <Table>
