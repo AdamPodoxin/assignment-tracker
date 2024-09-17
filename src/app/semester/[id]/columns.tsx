@@ -1,6 +1,11 @@
 import { type Assignment } from "@prisma/client";
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpDown,
+  MoreHorizontal,
+  PencilIcon,
+  TrashIcon,
+} from "lucide-react";
 import { deleteAssignment } from "~/app/actions/semester";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -18,7 +23,13 @@ const toTitleCase = (s: string) =>
     (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
   );
 
-const getColumns = ({ refetch }: { refetch: () => void }) => {
+const getColumns = ({
+  refetch,
+  editAssignment,
+}: {
+  refetch: () => void;
+  editAssignment: (id: Assignment) => void;
+}) => {
   const columns: ColumnDef<Assignment, unknown>[] = [
     {
       accessorKey: "course",
@@ -93,6 +104,16 @@ const getColumns = ({ refetch }: { refetch: () => void }) => {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
               <DropdownMenuItem
+                onClick={() => {
+                  editAssignment(assignment);
+                }}
+              >
+                <span className="flex">
+                  <PencilIcon className="mr-2 h-4 w-4" /> Edit
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
                 onClick={async () => {
                   await deleteAssignment({
                     assignmentId: assignment.id,
@@ -102,7 +123,9 @@ const getColumns = ({ refetch }: { refetch: () => void }) => {
                   refetch();
                 }}
               >
-                <span className="font-bold text-red-600">Delete</span>
+                <span className="flex font-bold text-red-600">
+                  <TrashIcon className="mr-2 h-4 w-4" /> Delete
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

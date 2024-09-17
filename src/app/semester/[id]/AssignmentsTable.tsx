@@ -13,7 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { cn } from "~/lib/utils";
-import { addAssignment } from "~/app/actions/semester";
+import { addAssignment, editAssignment } from "~/app/actions/semester";
 import {
   Table,
   TableBody,
@@ -56,7 +56,29 @@ export const AssignmentsTable = ({
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const columns = useMemo(() => getColumns({ refetch }), [refetch]);
+  const [editingAssignmentId, setEditingAssignmentId] = useState("");
+  const [editingAssignmentName, setEditingAssignmentName] = useState("");
+  const [editingAssignmentCourse, setEditingAssignmentCourse] = useState("");
+  const [editingAssignmentDate, setEditingAssignmentDate] = useState(
+    new Date(),
+  );
+  const [editingAssignmentStatus, setEditingAssignmentStatus] =
+    useState<Status>(Status.NOT_DONE);
+
+  const columns = useMemo(
+    () =>
+      getColumns({
+        refetch,
+        editAssignment: (assignment) => {
+          setEditingAssignmentId(assignment.id);
+          setEditingAssignmentName(assignment.name);
+          setEditingAssignmentCourse(assignment.course);
+          setEditingAssignmentDate(assignment.dueDate);
+          setEditingAssignmentStatus(assignment.status);
+        },
+      }),
+    [refetch],
+  );
 
   const table = useReactTable<Assignment>({
     data: semester.assignments,
@@ -206,21 +228,131 @@ export const AssignmentsTable = ({
             )}
 
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                if (row.original.id === editingAssignmentId) {
+                  return (
+                    <TableRow key={row.original.id}>
+                      <TableCell>
+                        <Input
+                          placeholder="Course"
+                          value={editingAssignmentCourse}
+                          onChange={(e) =>
+                            setEditingAssignmentCourse(e.target.value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          placeholder="Assignment"
+                          value={editingAssignmentName}
+                          onChange={(e) =>
+                            setEditingAssignmentName(e.target.value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-[280px] justify-start text-left font-normal",
+                                !editingAssignmentDate &&
+                                  "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {editingAssignmentDate ? (
+                                format(editingAssignmentDate, "PPP")
+                              ) : (
+                                <span>Due date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={editingAssignmentDate}
+                              onSelect={(e) =>
+                                setEditingAssignmentDate(e ?? new Date())
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={editingAssignmentStatus}
+                          onValueChange={(v) =>
+                            setEditingAssignmentStatus(v as Status)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Status</SelectLabel>
+                              <SelectItem value="NOT_DONE">NOT DONE</SelectItem>
+                              <SelectItem value="IN_PROGRESS">
+                                IN PROGRESS
+                              </SelectItem>
+                              <SelectItem value="DONE">DONE</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <span className="flex gap-2">
+                          <Button
+                            onClick={async () => {
+                              setEditingAssignmentId("");
+
+                              await editAssignment({
+                                semesterId: semester.id,
+                                assignmentId: editingAssignmentId,
+                                data: {
+                                  course: editingAssignmentCourse,
+                                  name: editingAssignmentName,
+                                  dueDate: editingAssignmentDate,
+                                  status: editingAssignmentStatus,
+                                },
+                              });
+
+                              refetch();
+                            }}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            variant={"secondary"}
+                            onClick={() => setEditingAssignmentId("")}
+                          >
+                            Cancel
+                          </Button>
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
