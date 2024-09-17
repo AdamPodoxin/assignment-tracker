@@ -37,7 +37,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
@@ -110,7 +110,9 @@ export const AssignmentsTable = ({
         className="my-2"
         onClick={() => setIsNewAssignmentRowVisible(true)}
       >
-        Add assignment
+        <span className="flex items-center">
+          <PlusIcon className="mr-2 h-4 w-4" /> Add assignment
+        </span>
       </Button>
 
       <div className="rounded-md border">
