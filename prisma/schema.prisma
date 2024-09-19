@@ -26,7 +26,7 @@ model Assignment {
   dueDate DateTime
   status Status @default(NOT_DONE)
 
-  semester Semester @relation(fields: [semesterId], references: [id])
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
   semesterId String
 }
 

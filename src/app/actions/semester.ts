@@ -4,6 +4,27 @@ import { auth } from "@clerk/nextjs/server";
 import { type Assignment } from "@prisma/client";
 import { db } from "~/server/db";
 
+export const getSemesters = async () => {
+  const { userId } = auth();
+
+  if (!userId) {
+    throw new Error("User is not signed in");
+  }
+
+  return await db.semester.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      _count: {
+        select: {
+          assignments: true,
+        },
+      },
+    },
+  });
+};
+
 export const createSemester = async (name: string) => {
   const { userId } = auth();
 
@@ -28,6 +49,14 @@ export const createSemester = async (name: string) => {
     data: {
       name,
       userId,
+    },
+  });
+};
+
+export const deleteSemester = async (id: string) => {
+  await db.semester.delete({
+    where: {
+      id,
     },
   });
 };
