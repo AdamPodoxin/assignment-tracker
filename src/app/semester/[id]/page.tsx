@@ -1,44 +1,19 @@
-"use client";
-
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import useSemester from "~/hooks/useSemester";
-import { AssignmentsTable } from "./AssignmentsTable";
+import { auth } from "@clerk/nextjs/server";
+import SemesterDashboard from "./SemesterDashboard";
 
-const queryClient = new QueryClient();
+const SemesterPage = ({ params }: { params: { id: string } }) => {
+  const { userId } = auth();
 
-const SemesterDashboard = ({ id }: { id: string }) => {
-  const { userId } = useAuth();
-
-  const { data: semester, isLoading, refetch } = useSemester({ id });
-
-  if (!isLoading && (!semester || semester.userId !== userId)) {
-    redirect("/not-found");
+  if (!userId) {
+    redirect("/");
   }
 
   return (
-    <>
-      {semester && (
-        <>
-          <p className="text-2xl">{semester.name}</p>
-          <AssignmentsTable
-            semester={semester}
-            refetch={() => void refetch()}
-          />
-        </>
-      )}
-    </>
-  );
-};
-
-const SemesterPage = ({ params }: { params: { id: string } }) => {
-  return (
-    <>
-      <QueryClientProvider client={queryClient}>
-        {<SemesterDashboard id={params.id} />}
-      </QueryClientProvider>
-    </>
+    <Suspense>
+      <SemesterDashboard userId={userId} id={params.id} />
+    </Suspense>
   );
 };
 
