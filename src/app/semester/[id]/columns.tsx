@@ -5,9 +5,14 @@ import {
   MoreHorizontal,
   PencilIcon,
   TrashIcon,
+  Check,
+  X,
+  Hourglass,
 } from "lucide-react";
-import { deleteAssignment } from "~/app/actions/semester";
-import { Badge } from "~/components/ui/badge";
+import {
+  deleteAssignment,
+  changeAssignmentStatus,
+} from "~/app/actions/semester";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -16,12 +21,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-
-const toTitleCase = (s: string) =>
-  s.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
-  );
 
 const getColumns = ({
   refetch,
@@ -63,28 +62,55 @@ const getColumns = ({
       header: "Status",
       cell: ({ row }) => {
         const status = row.original.status;
-        const statusString = status
-          .toString()
-          .split("_")
-          .map(toTitleCase)
-          .join(" ");
+        return (
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              className={`px-1 hover:bg-green-500 ${status === "DONE" ? "bg-green-600" : ""}`}
+              onClick={async () => {
+                if (status === "DONE") return;
 
-        switch (status) {
-          case "NOT_DONE":
-            return (
-              <Badge className="bg-red-600 text-white">{statusString}</Badge>
-            );
+                await changeAssignmentStatus({
+                  id: row.original.id,
+                  status: "DONE",
+                });
+                refetch();
+              }}
+            >
+              <Check className="w-8" />
+            </Button>
+            <Button
+              variant="outline"
+              className={`px-1 ${status === "IN_PROGRESS" ? "bg-amber-600" : ""}`}
+              onClick={async () => {
+                if (status === "IN_PROGRESS") return;
 
-          case "IN_PROGRESS":
-            return (
-              <Badge className="bg-amber-600 text-white">{statusString}</Badge>
-            );
+                await changeAssignmentStatus({
+                  id: row.original.id,
+                  status: "IN_PROGRESS",
+                });
+                refetch();
+              }}
+            >
+              <Hourglass className="w-8" />
+            </Button>
+            <Button
+              variant="outline"
+              className={`px-1 ${status === "NOT_DONE" ? "bg-red-600" : ""}`}
+              onClick={async () => {
+                if (status === "NOT_DONE") return;
 
-          case "DONE":
-            return (
-              <Badge className="bg-green-600 text-white">{statusString}</Badge>
-            );
-        }
+                await changeAssignmentStatus({
+                  id: row.original.id,
+                  status: "NOT_DONE",
+                });
+                refetch();
+              }}
+            >
+              <X className="w-8" />
+            </Button>
+          </div>
+        );
       },
     },
     {

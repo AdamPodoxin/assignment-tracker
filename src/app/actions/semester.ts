@@ -1,8 +1,8 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { type Assignment } from "@prisma/client";
 import { db } from "~/server/db";
+import type { $Enums, Assignment } from "@prisma/client";
 
 export const getSemesters = async () => {
   const { userId } = auth();
@@ -118,6 +118,21 @@ export const editAssignment = async ({
           data: data,
         },
       },
+    },
+  });
+};
+
+export const changeAssignmentStatus = async ({
+  id,
+  status,
+}: {
+  id: string;
+  status: $Enums.Status;
+}) => {
+  await db.assignment.update({
+    where: { id },
+    data: {
+      status,
     },
   });
 };
