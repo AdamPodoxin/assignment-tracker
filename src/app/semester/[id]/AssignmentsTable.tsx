@@ -83,6 +83,16 @@ export const AssignmentsTable = ({
 
           setIsDialogOpen(true);
         },
+        duplicateAssignment: (assignment) => {
+          setIsEditing(false);
+
+          setNewAssignmentCourse(assignment.course);
+          setNewAssignmentName(assignment.name);
+          setNewAssignmentLink(assignment.link ?? "");
+          setNewAssignmentDate(assignment.dueDate);
+
+          setIsDialogOpen(true);
+        },
       }),
     [refetch],
   );
@@ -121,7 +131,7 @@ export const AssignmentsTable = ({
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>New Assignment</DialogTitle>
+              <DialogTitle>{isEditing ? "Edit" : "New"} Assignment</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">
               <Input

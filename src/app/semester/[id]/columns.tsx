@@ -8,6 +8,7 @@ import {
   Check,
   X,
   Hourglass,
+  CopyPlus,
 } from "lucide-react";
 import {
   deleteAssignment,
@@ -25,9 +26,11 @@ import {
 const getColumns = ({
   refetch,
   editAssignment,
+  duplicateAssignment,
 }: {
   refetch: () => void;
   editAssignment: (id: Assignment) => void;
+  duplicateAssignment: (id: Assignment) => void;
 }) => {
   const columns: ColumnDef<Assignment, unknown>[] = [
     {
@@ -152,6 +155,16 @@ const getColumns = ({
               >
                 <span className="flex">
                   <PencilIcon className="mr-2 h-4 w-4" /> Edit
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  duplicateAssignment(assignment);
+                }}
+              >
+                <span className="flex">
+                  <CopyPlus className="mr-2 h-4 w-4" /> Duplicate
                 </span>
               </DropdownMenuItem>
 
