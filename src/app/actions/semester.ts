@@ -22,6 +22,9 @@ export const getSemesters = async () => {
         },
       },
     },
+    orderBy: {
+      creationDateTime: "desc",
+    },
   });
 };
 

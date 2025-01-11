@@ -15,6 +15,7 @@ model Semester {
     id String @id @default(cuid())
     userId String
     name String
+    creationDateTime DateTime @default(now())
 
     assignments Assignment[]
 }
