@@ -112,6 +112,7 @@ export const AssignmentsTable = ({
 
   const [newAssignmentCourse, setNewAssignmentCourse] = useState("");
   const [newAssignmentName, setNewAssignmentName] = useState("");
+  const [newAssignmentLink, setNewAssignmentLink] = useState("");
   const [newAssignmentDate, setNewAssignmentDate] = useState(new Date());
 
   return (
@@ -139,6 +140,11 @@ export const AssignmentsTable = ({
                 placeholder="Name"
                 value={newAssignmentName}
                 onChange={(e) => setNewAssignmentName(e.target.value)}
+              />
+              <Input
+                placeholder="Link"
+                value={newAssignmentLink}
+                onChange={(e) => setNewAssignmentLink(e.target.value)}
               />
               <Popover>
                 <PopoverTrigger asChild>
@@ -177,6 +183,7 @@ export const AssignmentsTable = ({
                         name: newAssignmentName,
                         dueDate: newAssignmentDate,
                         status: "NOT_DONE",
+                        link: newAssignmentLink || null,
                       },
                       semesterId: semester.id,
                     });
@@ -336,6 +343,7 @@ export const AssignmentsTable = ({
                                   name: editingAssignmentName,
                                   dueDate: editingAssignmentDate,
                                   status: editingAssignmentStatus,
+                                  link: null,
                                 },
                               });
 

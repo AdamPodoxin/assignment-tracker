@@ -37,6 +37,22 @@ const getColumns = ({
     {
       accessorKey: "name",
       header: "Assignment",
+      cell: ({ row }) => {
+        if (row.original.link) {
+          return (
+            <a
+              href={row.original.link}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              {row.original.name}
+            </a>
+          );
+        } else {
+          return row.original.name;
+        }
+      },
     },
     {
       accessorKey: "dueDate",

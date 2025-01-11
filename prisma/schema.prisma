@@ -24,6 +24,7 @@ model Assignment {
   id String @id @default(cuid())
   name String
   course String
+  link String?
   dueDate DateTime
   status Status @default(NOT_DONE)
 
