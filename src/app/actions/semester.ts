@@ -155,3 +155,14 @@ export const deleteAssignment = async ({
     },
   });
 };
+
+export const getAssignmentsBySemester = async (semesterId: string) => {
+  return await db.assignment.findMany({
+    where: {
+      semesterId,
+    },
+    orderBy: {
+      dueDate: "asc",
+    },
+  });
+};

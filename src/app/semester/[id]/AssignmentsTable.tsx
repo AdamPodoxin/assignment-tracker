@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, FileIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, DownloadIcon, FileIcon, PlusIcon } from "lucide-react";
 import { type Assignment, Status } from "@prisma/client";
 import {
   type SortingState,
@@ -14,8 +14,12 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { cn } from "~/lib/utils";
-import { addAssignment, editAssignment } from "~/app/actions/semester";
+import { cn, convertAssignmentsToCsv } from "~/lib/utils";
+import {
+  addAssignment,
+  editAssignment,
+  getAssignmentsBySemester,
+} from "~/app/actions/semester";
 import {
   Table,
   TableBody,
@@ -114,11 +118,8 @@ export const AssignmentsTable = ({
     <div className="flex w-full flex-col gap-2">
       <span className="flex gap-2">
         <Dialog>
-          <DialogTrigger>
-            <Button
-              className="my-2"
-              // onClick={() => setIsNewAssignmentRowVisible(true)}
-            >
+          <DialogTrigger asChild>
+            <Button className="my-2">
               <span className="flex items-center">
                 <PlusIcon className="mr-2 h-4 w-4" /> Add assignment
               </span>
@@ -197,6 +198,29 @@ export const AssignmentsTable = ({
         >
           <span className="flex items-center">
             <FileIcon className="mr-2 h-4 w-4" /> Import CSV
+          </span>
+        </Button>
+
+        <Button
+          variant={"secondary"}
+          className="my-2"
+          onClick={async () => {
+            const assignments = await getAssignmentsBySemester(semester.id);
+
+            const csv = convertAssignmentsToCsv(assignments);
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.setAttribute("hidden", "");
+            a.setAttribute("href", url);
+            a.setAttribute("download", "assignments.csv");
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }}
+        >
+          <span className="flex items-center">
+            <DownloadIcon className="mr-2 h-4 w-4" /> Export CSV
           </span>
         </Button>
       </span>
