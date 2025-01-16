@@ -45,6 +45,14 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
 import getColumns from "./columns";
 
@@ -110,6 +118,16 @@ export const AssignmentsTable = ({
       columnFilters,
     },
   });
+
+  const courses = useMemo(() => {
+    const courseSet = new Set<string>();
+
+    semester.assignments.forEach((assignment) => {
+      courseSet.add(assignment.course);
+    });
+
+    return Array.from(courseSet);
+  }, [semester.assignments]);
 
   const [newAssignmentCourse, setNewAssignmentCourse] = useState("");
   const [newAssignmentName, setNewAssignmentName] = useState("");
@@ -252,11 +270,60 @@ export const AssignmentsTable = ({
       <Input
         type="search"
         placeholder="Search"
-        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
         onChange={(event) =>
           table.getColumn("name")?.setFilterValue(event.target.value)
         }
       />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">Open</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuLabel>Courses</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+
+          {courses.map((course) => (
+            <DropdownMenuCheckboxItem
+              key={course}
+              checked={(
+                table.getColumn("course")?.getFilterValue() as
+                  | string[]
+                  | undefined
+              )?.includes(course)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  const selected = table
+                    .getColumn("course")
+                    ?.getFilterValue() as string[] | undefined;
+
+                  if (selected) {
+                    table
+                      .getColumn("course")
+                      ?.setFilterValue([...selected, course]);
+                  } else {
+                    table.getColumn("course")?.setFilterValue([course]);
+                  }
+                } else {
+                  const selected = table
+                    .getColumn("course")
+                    ?.getFilterValue() as string[] | undefined;
+
+                  if (selected) {
+                    table
+                      .getColumn("course")
+                      ?.setFilterValue(selected.filter((c) => c !== course));
+                  }
+                }
+
+                console.log(table.getColumn("course")?.getFilterValue());
+              }}
+            >
+              {course}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <div className="rounded-md border">
         <Table>
@@ -281,115 +348,6 @@ export const AssignmentsTable = ({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                // if (row.original.id === editingAssignmentId) {
-                //   return (
-                //     <TableRow key={row.original.id}>
-                //       <TableCell>
-                //         <Input
-                //           placeholder="Course"
-                //           value={editingAssignmentCourse}
-                //           onChange={(e) =>
-                //             setEditingAssignmentCourse(e.target.value)
-                //           }
-                //         />
-                //       </TableCell>
-                //       <TableCell>
-                //         <Input
-                //           placeholder="Assignment"
-                //           value={editingAssignmentName}
-                //           onChange={(e) =>
-                //             setEditingAssignmentName(e.target.value)
-                //           }
-                //         />
-                //       </TableCell>
-                //       <TableCell>
-                //         <Popover>
-                //           <PopoverTrigger asChild>
-                //             <Button
-                //               variant={"outline"}
-                //               className={cn(
-                //                 "w-[280px] justify-start text-left font-normal",
-                //                 !editingAssignmentDate &&
-                //                   "text-muted-foreground",
-                //               )}
-                //             >
-                //               <CalendarIcon className="mr-2 h-4 w-4" />
-                //               {editingAssignmentDate ? (
-                //                 format(editingAssignmentDate, "PPP")
-                //               ) : (
-                //                 <span>Due date</span>
-                //               )}
-                //             </Button>
-                //           </PopoverTrigger>
-                //           <PopoverContent className="w-auto p-0">
-                //             <Calendar
-                //               mode="single"
-                //               selected={editingAssignmentDate}
-                //               onSelect={(e) =>
-                //                 setEditingAssignmentDate(e ?? new Date())
-                //               }
-                //               initialFocus
-                //             />
-                //           </PopoverContent>
-                //         </Popover>
-                //       </TableCell>
-                //       <TableCell>
-                //         <Select
-                //           value={editingAssignmentStatus}
-                //           onValueChange={(v) =>
-                //             setEditingAssignmentStatus(v as Status)
-                //           }
-                //         >
-                //           <SelectTrigger>
-                //             <SelectValue placeholder="Status" />
-                //           </SelectTrigger>
-                //           <SelectContent>
-                //             <SelectGroup>
-                //               <SelectLabel>Status</SelectLabel>
-                //               <SelectItem value="NOT_DONE">NOT DONE</SelectItem>
-                //               <SelectItem value="IN_PROGRESS">
-                //                 IN PROGRESS
-                //               </SelectItem>
-                //               <SelectItem value="DONE">DONE</SelectItem>
-                //             </SelectGroup>
-                //           </SelectContent>
-                //         </Select>
-                //       </TableCell>
-                //       <TableCell>
-                //         <span className="flex gap-2">
-                //           <Button
-                //             onClick={async () => {
-                //               setEditingAssignmentId("");
-
-                //               await editAssignment({
-                //                 semesterId: semester.id,
-                //                 assignmentId: editingAssignmentId,
-                //                 data: {
-                //                   course: editingAssignmentCourse,
-                //                   name: editingAssignmentName,
-                //                   dueDate: editingAssignmentDate,
-                //                   status: editingAssignmentStatus,
-                //                   link: null,
-                //                 },
-                //               });
-
-                //               refetch();
-                //             }}
-                //           >
-                //             Save
-                //           </Button>
-                //           <Button
-                //             variant={"secondary"}
-                //             onClick={() => setEditingAssignmentId("")}
-                //           >
-                //             Cancel
-                //           </Button>
-                //         </span>
-                //       </TableCell>
-                //     </TableRow>
-                //   );
-                // }
-
                 return (
                   <TableRow
                     key={row.id}
