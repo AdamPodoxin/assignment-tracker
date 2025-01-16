@@ -49,6 +49,11 @@ const ImportCsvPage = ({ params }: { params: { id: string } }) => {
               required: true,
             },
             {
+              name: "Link",
+              key: "link",
+              required: false,
+            },
+            {
               name: "Due Date",
               key: "dueDate",
               required: true,

@@ -7,6 +7,7 @@ export type ImportCsvData = {
   rows: {
     values: {
       assignment: string;
+      link: string | null;
       course: string;
       dueDate: string;
       status: string;
@@ -29,6 +30,7 @@ export const importCsv = async ({
 
       return {
         name: values.assignment,
+        link: values.link,
         course: values.course,
         dueDate,
         status: values.status as $Enums.Status,
