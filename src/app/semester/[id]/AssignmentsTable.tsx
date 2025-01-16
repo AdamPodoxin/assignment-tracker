@@ -249,6 +249,15 @@ export const AssignmentsTable = ({
         </Button>
       </span>
 
+      <Input
+        type="search"
+        placeholder="Search"
+        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+        onChange={(event) =>
+          table.getColumn("name")?.setFilterValue(event.target.value)
+        }
+      />
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
