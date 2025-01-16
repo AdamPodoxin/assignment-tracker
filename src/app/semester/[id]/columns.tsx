@@ -1,5 +1,5 @@
 import { type Assignment } from "@prisma/client";
-import { type ColumnDef } from "@tanstack/react-table";
+import type { Table, ColumnDef } from "@tanstack/react-table";
 import {
   ArrowUpDown,
   MoreHorizontal,
@@ -9,6 +9,7 @@ import {
   X,
   Hourglass,
   CopyPlus,
+  Filter,
 } from "lucide-react";
 import {
   deleteAssignment,
@@ -17,17 +18,23 @@ import {
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
 const getColumns = ({
+  table,
+  courses,
   refetch,
   editAssignment,
   duplicateAssignment,
 }: {
+  table: Table<Assignment>;
+  courses: string[];
   refetch: () => void;
   editAssignment: (id: Assignment) => void;
   duplicateAssignment: (id: Assignment) => void;
@@ -35,7 +42,61 @@ const getColumns = ({
   const columns: ColumnDef<Assignment, unknown>[] = [
     {
       accessorKey: "course",
-      header: "Course",
+      header: () => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">
+                Course <Filter className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Courses</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
+              {courses.map((course) => (
+                <DropdownMenuCheckboxItem
+                  key={course}
+                  checked={(
+                    table.getColumn("course")?.getFilterValue() as
+                      | string[]
+                      | undefined
+                  )?.includes(course)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      const selected = table
+                        .getColumn("course")
+                        ?.getFilterValue() as string[] | undefined;
+
+                      if (selected) {
+                        table
+                          .getColumn("course")
+                          ?.setFilterValue([...selected, course]);
+                      } else {
+                        table.getColumn("course")?.setFilterValue([course]);
+                      }
+                    } else {
+                      const selected = table
+                        .getColumn("course")
+                        ?.getFilterValue() as string[] | undefined;
+
+                      if (selected) {
+                        table
+                          .getColumn("course")
+                          ?.setFilterValue(
+                            selected.filter((c) => c !== course),
+                          );
+                      }
+                    }
+                  }}
+                >
+                  {course}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
     {
       accessorKey: "name",

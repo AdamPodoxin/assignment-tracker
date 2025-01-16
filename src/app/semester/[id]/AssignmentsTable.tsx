@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { CalendarIcon, DownloadIcon, FileIcon, PlusIcon } from "lucide-react";
@@ -13,6 +13,7 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   useReactTable,
+  type ColumnDef,
 } from "@tanstack/react-table";
 import { cn, convertAssignmentsToCsv } from "~/lib/utils";
 import {
@@ -45,14 +46,6 @@ import {
   DialogTrigger,
   DialogClose,
 } from "~/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { type SemesterWithAssignments } from "~/hooks/useSemester";
 import getColumns from "./columns";
 
@@ -76,9 +69,37 @@ export const AssignmentsTable = ({
   const [editingAssignmentStatus, setEditingAssignmentStatus] =
     useState<Status>("NOT_DONE");
 
-  const columns = useMemo(
-    () =>
+  const courses = useMemo(() => {
+    const courseSet = new Set<string>();
+
+    semester.assignments.forEach((assignment) => {
+      courseSet.add(assignment.course);
+    });
+
+    return Array.from(courseSet);
+  }, [semester.assignments]);
+
+  const [columns, setColumns] = useState<ColumnDef<Assignment, unknown>[]>([]);
+
+  const table = useReactTable<Assignment>({
+    data: semester.assignments,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
+
+  useEffect(() => {
+    setColumns(
       getColumns({
+        table,
+        courses,
         refetch,
         editAssignment: (assignment) => {
           setIsEditing(true);
@@ -102,32 +123,8 @@ export const AssignmentsTable = ({
           setIsDialogOpen(true);
         },
       }),
-    [refetch],
-  );
-
-  const table = useReactTable<Assignment>({
-    data: semester.assignments,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    state: {
-      sorting,
-      columnFilters,
-    },
-  });
-
-  const courses = useMemo(() => {
-    const courseSet = new Set<string>();
-
-    semester.assignments.forEach((assignment) => {
-      courseSet.add(assignment.course);
-    });
-
-    return Array.from(courseSet);
-  }, [semester.assignments]);
+    );
+  }, [table, courses, refetch]);
 
   const [newAssignmentCourse, setNewAssignmentCourse] = useState("");
   const [newAssignmentName, setNewAssignmentName] = useState("");
@@ -274,56 +271,6 @@ export const AssignmentsTable = ({
           table.getColumn("name")?.setFilterValue(event.target.value)
         }
       />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">Open</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
-          <DropdownMenuLabel>Courses</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-
-          {courses.map((course) => (
-            <DropdownMenuCheckboxItem
-              key={course}
-              checked={(
-                table.getColumn("course")?.getFilterValue() as
-                  | string[]
-                  | undefined
-              )?.includes(course)}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  const selected = table
-                    .getColumn("course")
-                    ?.getFilterValue() as string[] | undefined;
-
-                  if (selected) {
-                    table
-                      .getColumn("course")
-                      ?.setFilterValue([...selected, course]);
-                  } else {
-                    table.getColumn("course")?.setFilterValue([course]);
-                  }
-                } else {
-                  const selected = table
-                    .getColumn("course")
-                    ?.getFilterValue() as string[] | undefined;
-
-                  if (selected) {
-                    table
-                      .getColumn("course")
-                      ?.setFilterValue(selected.filter((c) => c !== course));
-                  }
-                }
-
-                console.log(table.getColumn("course")?.getFilterValue());
-              }}
-            >
-              {course}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
 
       <div className="rounded-md border">
         <Table>
