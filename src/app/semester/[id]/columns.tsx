@@ -58,36 +58,14 @@ const getColumns = ({
               {courses.map((course) => (
                 <DropdownMenuCheckboxItem
                   key={course}
-                  checked={(
-                    table.getColumn("course")?.getFilterValue() as
-                      | string[]
-                      | undefined
-                  )?.includes(course)}
+                  checked={
+                    table.getColumn("course")?.getFilterValue() === course
+                  }
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      const selected = table
-                        .getColumn("course")
-                        ?.getFilterValue() as string[] | undefined;
-
-                      if (selected) {
-                        table
-                          .getColumn("course")
-                          ?.setFilterValue([...selected, course]);
-                      } else {
-                        table.getColumn("course")?.setFilterValue([course]);
-                      }
+                      table.getColumn("course")?.setFilterValue(course);
                     } else {
-                      const selected = table
-                        .getColumn("course")
-                        ?.getFilterValue() as string[] | undefined;
-
-                      if (selected) {
-                        table
-                          .getColumn("course")
-                          ?.setFilterValue(
-                            selected.filter((c) => c !== course),
-                          );
-                      }
+                      table.getColumn("course")?.setFilterValue(undefined);
                     }
                   }}
                 >
