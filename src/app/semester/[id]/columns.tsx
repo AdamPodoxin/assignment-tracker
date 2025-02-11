@@ -42,6 +42,7 @@ const getColumns = ({
   const columns: ColumnDef<Assignment, unknown>[] = [
     {
       accessorKey: "course",
+      id: "course",
       header: () => {
         return (
           <DropdownMenu>
@@ -100,6 +101,7 @@ const getColumns = ({
     },
     {
       accessorKey: "name",
+      id: "name",
       header: "Assignment",
       cell: ({ row }) => {
         if (row.original.link) {
@@ -120,6 +122,7 @@ const getColumns = ({
     },
     {
       accessorKey: "dueDate",
+      id: "dueDate",
       sortDescFirst: false,
       header: ({ column }) => {
         return (
@@ -139,6 +142,7 @@ const getColumns = ({
     },
     {
       accessorKey: "status",
+      id: "status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.original.status;

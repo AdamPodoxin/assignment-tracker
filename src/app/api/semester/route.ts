@@ -15,7 +15,11 @@ export const GET = async (request: NextRequest) => {
     where: {
       id,
     },
-    include: { assignments: true },
+    include: {
+      assignments: {
+        orderBy: { dueDate: "asc" },
+      },
+    },
   });
 
   if (!semester) {
